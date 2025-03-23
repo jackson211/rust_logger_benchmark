@@ -1,0 +1,23 @@
+# Rust
+/target
+Cargo.lock
+
+# Python
+.venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Generated benchmark results
+/results/
+
+# OS specific
+.DS_Store
+Thumbs.db
+
+# Editor specific
+.idea/
+.vscode/
+*.swp
+*.swo
