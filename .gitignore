@@ -9,8 +9,6 @@ __pycache__/
 *.pyo
 *.pyd
 
-# Generated benchmark results
-/results/
 
 # OS specific
 .DS_Store
