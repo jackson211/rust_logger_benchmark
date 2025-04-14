@@ -1,80 +1,39 @@
 #!/bin/bash
 
-set -e
+# Run all benchmarks script
+# This script runs all the logging benchmarks and saves the results
 
-function print_header() {
-    echo "====================================================="
-    echo "  Rust Logging Benchmarks"
-    echo "====================================================="
-    echo ""
+# Set up colors for output
+GREEN='\033[0;32m'
+BLUE='\033[0;34m'
+NC='\033[0m' # No Color
+
+# Create results directory if it doesn't exist
+mkdir -p results
+
+# Get current date and time for the results file
+TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
+RESULTS_FILE="results/benchmark_results_${TIMESTAMP}.txt"
+
+echo -e "${BLUE}Running all logging benchmarks...${NC}"
+echo "Logging benchmark results - $(date)" > "$RESULTS_FILE"
+echo "=====================================" >> "$RESULTS_FILE"
+
+# Function to run a benchmark and append results
+run_benchmark() {
+    local name=$1
+    echo -e "${GREEN}Running $name benchmark...${NC}"
+    echo -e "\n=== $name Benchmark ===" >> "$RESULTS_FILE"
+    cargo bench --bench "$name" >> "$RESULTS_FILE" 2>&1
+    echo "=====================================" >> "$RESULTS_FILE"
 }
 
-function check_prerequisites() {
-    # Check if uv is installed
-    if ! command -v uv &> /dev/null; then
-        echo "Error: 'uv' is not installed. Please install it first."
-        echo "Visit: https://github.com/astral-sh/uv"
-        exit 1
-    fi
-}
+# Run each benchmark
+run_benchmark "slog_bench"
+run_benchmark "log4rs_bench"
+run_benchmark "fern_bench"
+run_benchmark "ftlog_bench"
+run_benchmark "tracing_bench"
 
-function run_benchmark() {
-    echo "Running benchmarks sequentially (this may take several minutes)..."
-    
-    # List of benchmarks to run
-    benchmarks=(
-        "env_logger_bench"
-        "fern_bench"
-        "ftlog_bench"
-        "log4rs_bench"
-        "slog_bench"
-        "tracing_bench"
-    )
-    
-    # Run each benchmark individually
-    for bench in "${benchmarks[@]}"; do
-        echo "Running benchmark: $bench"
-        cargo bench --bench "$bench"
-        echo "Completed: $bench"
-        echo "-------------------------------------------"
-    done
-    
-    echo "All benchmarks completed successfully."
-}
-
-function generate_results() {
-    echo "Generating benchmark results with Python..."
-    
-    # Create virtual environment and install dependencies
-    uv venv .venv
-    source .venv/bin/activate
-    uv pip install -r scripts/requirements.txt
-    
-    # Run the Python script
-    python scripts/generate_results.py
-    
-    # Deactivate virtual environment
-    deactivate
-    
-    echo "Results generated successfully in the 'results' directory!"
-    echo "- View HTML reports: target/criterion/report/index.html"
-    echo "- View markdown summary: results/benchmark_results.md"
-}
-
-function main() {
-    print_header
-    check_prerequisites
-    
-    # Parse command line arguments
-    if [[ "$1" == "--report-only" ]]; then
-        echo "Generating reports from existing benchmark data..."
-        generate_results
-    else
-        echo "Running full benchmark suite and generating reports..."
-        run_benchmark
-        generate_results
-    fi
-}
-
-# Execute main function
-main "$@" 
+echo -e "${BLUE}All benchmarks completed. Results saved to: ${RESULTS_FILE}${NC}"
+echo -e "${GREEN}Done!${NC}" 

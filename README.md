@@ -35,7 +35,7 @@ This will show examples of using each logging crate with various log messages.
 To run the benchmarks and compare performance:
 
 ```bash
-./benchmark.sh
+cargo bench
 ```
 
 The benchmarks measure:
@@ -43,24 +43,18 @@ The benchmarks measure:
 1. **Message Size**: Performance with different log message sizes (10, 100, 1000 characters)
 2. **Log Levels**: Performance differences between trace, debug, info, warn, and error levels
 
-### Generating Results
+## Benchmark Methodology
 
-You can generate benchmark results in readable format:
+The benchmarks ensure fair comparison across all logging frameworks by:
 
-```bash
-# Run benchmarks and generate results
-./benchmark.sh
+- Using consistent log format across all loggers
+- Standardizing on UTC timestamps with millisecond precision
+- Disabling ANSI colors for all loggers
+- Setting equivalent log level (Info) and message handling behavior
+- Measuring formatted message sizes consistently
+- Using blocking behavior for all loggers
 
-# OR if you've already run benchmarks, just generate the report
-./benchmark.sh --report-only
-```
-
-This will:
-
-1. Create a `results` directory with markdown reports
-2. Generate formatted benchmark data for easy comparison
-
-The results include both timing measurements (nanoseconds per log) and throughput (logs per second) for each logger.
+This methodology allows for direct comparison of the core performance characteristics of each logging framework without being affected by differences in formatting or configuration.
 
 ## Benchmark Aspects
 
@@ -82,16 +76,13 @@ You can modify the benchmark parameters in the `benches/common.rs` file and indi
 
 ## Performance Comparison
 
-Benchmark results comparing various Rust logging libraries are available in the [results/benchmark_results.md](results/benchmark_results.md) file.
+Benchmark results comparing various Rust logging libraries are available after running the benchmarks. The consolidated report makes it easy to compare the performance characteristics of each logger.
 
-### Key Findings
+### Key Metrics
 
-- **Fastest Logger**: Based on the benchmarks, the fastest logger for most common use cases appears to be **slog**.
+For each logger, the benchmarks report:
 
-- **Most Consistent**: **ftlog** shows the most consistent performance across different message sizes and log levels.
-
-- **Best for High Throughput**: **slog** demonstrates the best performance for high throughput logging scenarios.
-
-- **Memory Usage**: Memory usage patterns vary significantly between logging libraries, with some async implementations using more memory for better throughput.
-
-Please see the full benchmark results for detailed comparisons and to determine which logger best suits your specific needs.
+- Message count
+- Total bytes processed
+- Average bytes per message
+- Performance in terms of throughput and latency
