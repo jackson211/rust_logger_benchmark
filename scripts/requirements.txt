@@ -1,3 +1,0 @@
-# Requirements for benchmark results processing
-pathlib
-typing 
