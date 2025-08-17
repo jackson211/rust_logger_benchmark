@@ -6,6 +6,10 @@ This project compares the performance of various logging crates in the Rust ecos
 
 All benchmarks were run on:
 
+## Results
+
+After running the benchmarks using `cargo bench`, the results are stored in the `target/criterion` directory.
+
 - **Hardware**: Mac Mini M4 (Apple Silicon)
 - **Memory**: 24GB RAM
 - **OS**: macOS Sequoia
