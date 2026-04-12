@@ -5,11 +5,13 @@ use log_benchmark::logger_setup::{
     setup_env_logger_bench,
     setup_fern_bench,
     setup_log4rs_bench,
+    setup_rasant_bench,
     // Import standard setup for slog
     setup_slog,
     setup_slog_bench,
     setup_tracing_bench,
 };
+use rasant;
 use slog;
 use tracing;
 
@@ -21,6 +23,7 @@ fn benchmark_performance_comparison(c: &mut Criterion) {
     let _log4rs_metrics = setup_log4rs_bench();
     let _tracing_metrics = setup_tracing_bench();
     let _env_logger_metrics = setup_env_logger_bench();
+    let (mut rasant_logger_bench, _rasant_metrics) = setup_rasant_bench();
 
     // --- Message Size Comparison (Benchmark Configs) ---
     let mut group = c.benchmark_group("Log Message Size Comparison (Bench Configs)");
@@ -43,6 +46,21 @@ fn benchmark_performance_comparison(c: &mut Criterion) {
         group.bench_with_input(BenchmarkId::new("env_logger", size), &msg, |b, m| {
             b.iter(|| log::info!("{}", m))
         });
+
+        group.bench_with_input(BenchmarkId::new("rasant", size), &msg, |b, m| {
+            b.iter(|| _ = rasant::info!(rasant_logger_bench, m))
+        });
+        let mut rasant_count: usize = 0;
+        group.bench_with_input(
+            BenchmarkId::new("rasant_with_arguments", size),
+            &msg,
+            |b, m| {
+                b.iter(|| {
+                    _ = rasant::info!(rasant_logger_bench, m, size = *size, count = rasant_count);
+                    rasant_count += 1;
+                })
+            },
+        );
     }
     group.finish();
 
@@ -58,6 +76,17 @@ fn benchmark_performance_comparison(c: &mut Criterion) {
     group.bench_function("log4rs", |b| b.iter(|| log::info!("{}", msg)));
     group.bench_function("tracing", |b| b.iter(|| tracing::info!("{}", msg)));
     group.bench_function("env_logger", |b| b.iter(|| log::info!("{}", msg)));
+
+    group.bench_function("rasant", |b| {
+        b.iter(|| _ = rasant::info!(rasant_logger_bench, msg))
+    });
+    let mut rasant_count: usize = 0;
+    group.bench_function("rasant_with_arguments", |b| {
+        b.iter(|| {
+            _ = rasant::info!(rasant_logger_bench, msg, count = rasant_count);
+            rasant_count += 1;
+        })
+    });
     group.finish();
 }
 

@@ -19,6 +19,7 @@ All benchmarks were run on:
 - **log4rs**: A highly configurable logging framework modeled after Java's log4j and logback
 - **fern**: A simple, efficient logging implementation
 - **ftlog**: Fast, zero-allocation logging library optimized for high performance
+- **Rasant**: A lightweight, high performance and flexible Rust library for structured logging.
 
 ## Running the Demo
 

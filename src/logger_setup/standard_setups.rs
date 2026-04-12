@@ -1,6 +1,7 @@
 // src/logger_setup/standard_setups.rs
 use chrono::Local;
 use log::LevelFilter;
+use rasant;
 use slog::{o, Drain, Logger};
 use std::io::Write;
 
@@ -91,4 +92,13 @@ pub fn setup_slog() -> Logger {
 pub fn setup_tracing() {
     use tracing_subscriber::fmt;
     fmt::init();
+}
+
+// Set up Rasant for normal usage
+pub fn setup_rasant() -> rasant::Logger {
+    let mut log = rasant::Logger::new();
+    log.add_sink(rasant::sink::stdout::default())
+        .set_level(rasant::Level::Info);
+
+    log
 }

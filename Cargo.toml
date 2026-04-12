@@ -33,6 +33,9 @@ fern = "0.7.1"
 # Ftlog
 ftlog = "0.2.15"
 
+# Rasant
+rasant = "0.5.5"
+
 # For benchmarking
 criterion = { version = "0.5.1", features = ["html_reports"] }
 rand = "0.9.0"

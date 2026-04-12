@@ -16,6 +16,6 @@ pub use standard_setups::{
 
 // Benchmark setup functions
 pub use benchmark_setups::{
-    setup_env_logger_bench, setup_fern_bench, setup_log4rs_bench, setup_slog_bench,
-    setup_tracing_bench,
+    setup_env_logger_bench, setup_fern_bench, setup_log4rs_bench, setup_rasant_bench,
+    setup_slog_bench, setup_tracing_bench,
 };
