@@ -34,7 +34,7 @@ fern = "0.7.1"
 ftlog = "0.2.15"
 
 # Rasant
-rasant = "0.5.5"
+rasant = "0.6.0"
 
 # For benchmarking
 criterion = { version = "0.5.1", features = ["html_reports"] }

@@ -25,6 +25,10 @@ fn benchmark_performance_comparison(c: &mut Criterion) {
     let _env_logger_metrics = setup_env_logger_bench();
     let (mut rasant_logger_bench, _rasant_metrics) = setup_rasant_bench();
 
+    // Rasant sub-logger with arguments, writing to the same sinks as rasant_logger_bench.
+    let mut rasant_args_bench = rasant_logger_bench.clone();
+    rasant::set!(rasant_args_bench, foo = "xyz", bar = 123);
+
     // --- Message Size Comparison (Benchmark Configs) ---
     let mut group = c.benchmark_group("Log Message Size Comparison (Bench Configs)");
     for size in [10, 100, 1000].iter() {
@@ -48,19 +52,11 @@ fn benchmark_performance_comparison(c: &mut Criterion) {
         });
 
         group.bench_with_input(BenchmarkId::new("rasant", size), &msg, |b, m| {
-            b.iter(|| _ = rasant::info!(rasant_logger_bench, m))
+            b.iter(|| rasant::info!(rasant_logger_bench, m))
         });
-        let mut rasant_count: usize = 0;
-        group.bench_with_input(
-            BenchmarkId::new("rasant_with_arguments", size),
-            &msg,
-            |b, m| {
-                b.iter(|| {
-                    _ = rasant::info!(rasant_logger_bench, m, size = *size, count = rasant_count);
-                    rasant_count += 1;
-                })
-            },
-        );
+        group.bench_with_input(BenchmarkId::new("rasant_with_args", size), &msg, |b, m| {
+            b.iter(|| rasant::info!(rasant_args_bench, m, size = *size))
+        });
     }
     group.finish();
 
@@ -78,15 +74,12 @@ fn benchmark_performance_comparison(c: &mut Criterion) {
     group.bench_function("env_logger", |b| b.iter(|| log::info!("{}", msg)));
 
     group.bench_function("rasant", |b| {
-        b.iter(|| _ = rasant::info!(rasant_logger_bench, msg))
+        b.iter(|| rasant::info!(rasant_logger_bench, msg))
     });
-    let mut rasant_count: usize = 0;
-    group.bench_function("rasant_with_arguments", |b| {
-        b.iter(|| {
-            _ = rasant::info!(rasant_logger_bench, msg, count = rasant_count);
-            rasant_count += 1;
-        })
+    group.bench_function("rasant_with_args", |b| {
+        b.iter(|| rasant::info!(rasant_args_bench, msg))
     });
+
     group.finish();
 }
 
