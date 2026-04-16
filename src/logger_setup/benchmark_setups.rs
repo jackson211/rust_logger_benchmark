@@ -11,6 +11,7 @@ use log4rs::{
     encode::Encode,
     init_config,
 };
+use rasant;
 use slog::{o, Drain, Logger};
 use slog_term::{FullFormat, PlainSyncDecorator};
 use std::io::Write;
@@ -147,4 +148,27 @@ pub fn setup_env_logger_bench() -> Arc<MessageStats> {
         .try_init()
         .ok();
     Arc::clone(&stats)
+}
+
+// -- Rasant --
+pub fn setup_rasant_bench() -> (rasant::Logger, Arc<MessageStats>) {
+    let stats = Arc::new(MessageStats::new());
+    let writer = CountingWriter::new(Arc::clone(&stats));
+
+    let mut log = rasant::Logger::new();
+    log.add_sink(rasant::sink::io::IO::new(rasant::sink::io::IOConfig {
+        out: Some(writer),
+        name: "benchmark sink".into(),
+        formatter_cfg: rasant::FormatterConfig {
+            // A compact string: `<time> [INF] some log message key_1=value_1 key2=value_2`
+            format: rasant::OutputFormat::Compact,
+            // Compact datetime with milliseconds, in UTC: `2026-03-02 13:22:15.488`
+            time_format: rasant::TimeFormat::UtcMillisDateTime,
+            ..rasant::FormatterConfig::default()
+        },
+        ..rasant::sink::io::IOConfig::default()
+    }));
+    log.set_level(rasant::Level::Info);
+
+    (log, Arc::clone(&stats))
 }
