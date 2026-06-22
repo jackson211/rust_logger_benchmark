@@ -25,10 +25,6 @@ fn benchmark_performance_comparison(c: &mut Criterion) {
     let _env_logger_metrics = setup_env_logger_bench();
     let (mut rasant_logger_bench, _rasant_metrics) = setup_rasant_bench();
 
-    // Rasant sub-logger with arguments, writing to the same sinks as rasant_logger_bench.
-    let mut rasant_args_bench = rasant_logger_bench.clone();
-    rasant::set!(rasant_args_bench, foo = "xyz", bar = 123);
-
     // --- Message Size Comparison (Benchmark Configs) ---
     let mut group = c.benchmark_group("Log Message Size Comparison (Bench Configs)");
     for size in [10, 100, 1000].iter() {
@@ -50,12 +46,8 @@ fn benchmark_performance_comparison(c: &mut Criterion) {
         group.bench_with_input(BenchmarkId::new("env_logger", size), &msg, |b, m| {
             b.iter(|| log::info!("{}", m))
         });
-
         group.bench_with_input(BenchmarkId::new("rasant", size), &msg, |b, m| {
             b.iter(|| rasant::info!(rasant_logger_bench, m))
-        });
-        group.bench_with_input(BenchmarkId::new("rasant_with_args", size), &msg, |b, m| {
-            b.iter(|| rasant::info!(rasant_args_bench, m, size = *size))
         });
     }
     group.finish();
@@ -72,12 +64,8 @@ fn benchmark_performance_comparison(c: &mut Criterion) {
     group.bench_function("log4rs", |b| b.iter(|| log::info!("{}", msg)));
     group.bench_function("tracing", |b| b.iter(|| tracing::info!("{}", msg)));
     group.bench_function("env_logger", |b| b.iter(|| log::info!("{}", msg)));
-
     group.bench_function("rasant", |b| {
         b.iter(|| rasant::info!(rasant_logger_bench, msg))
-    });
-    group.bench_function("rasant_with_args", |b| {
-        b.iter(|| rasant::info!(rasant_args_bench, msg))
     });
 
     group.finish();
@@ -104,10 +92,51 @@ fn benchmark_slog_configs(c: &mut Criterion) {
     group.finish();
 }
 
+// Benchmarks Rasant in different modes.
+fn benchmark_rasant_modes(c: &mut Criterion) {
+    let mut group = c.benchmark_group("Rasant Modes Comparison (INFO)");
+    let msg = "Info message for mode comparison";
+    group.throughput(Throughput::Elements(1));
+
+    // synchronous benchmarks
+    let (mut logger, _metrics) = setup_rasant_bench();
+
+    group.bench_function("no args", |b| b.iter(|| rasant::info!(logger, msg)));
+
+    group.bench_function("args in request", |b| {
+        b.iter(|| rasant::info!(logger, msg, foo = "xyz", bar = 123))
+    });
+
+    rasant::set!(logger, foo = "xyz", bar = 123);
+    group.bench_function("fixed args", |b| b.iter(|| rasant::info!(logger, msg)));
+
+    // asynchronous benchmarks
+    let (mut async_logger, _metrics) = setup_rasant_bench();
+    async_logger.set_async(true);
+
+    group.bench_function("async, no args", |b| {
+        b.iter(|| rasant::info!(async_logger, msg))
+    });
+    async_logger.flush();
+
+    group.bench_function("async, args in request", |b| {
+        b.iter(|| rasant::info!(async_logger, msg, foo = "xyz", bar = 123))
+    });
+    async_logger.flush();
+
+    rasant::set!(async_logger, foo = "xyz", bar = 123);
+    group.bench_function("async, fixed args", |b| {
+        b.iter(|| rasant::info!(async_logger, msg))
+    });
+    async_logger.flush();
+
+    group.finish();
+}
+
 criterion_group!(
     name = benches;
     config = Criterion::default().sample_size(100);
-    // Add both functions to targets
-    targets = benchmark_performance_comparison, benchmark_slog_configs
+    targets = benchmark_performance_comparison, benchmark_slog_configs, benchmark_rasant_modes
 );
+
 criterion_main!(benches);
