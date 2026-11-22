@@ -163,7 +163,7 @@ pub fn setup_rasant_bench() -> (rasant::Logger, Arc<MessageStats>) {
             // A compact string: `<time> [INF] some log message key_1=value_1 key2=value_2`
             format: rasant::OutputFormat::Compact,
             // Compact datetime with milliseconds, in UTC: `2026-03-02 13:22:15.488`
-            time_format: rasant::TimeFormat::UtcMillisDateTime,
+            time_format: rasant::TimeFormat::DateTime(rasant::TimeTimezone::Utc, rasant::TimePrecision::Milliseconds),
             ..rasant::FormatterConfig::default()
         },
         ..rasant::sink::io::IOConfig::default()
